@@ -1,0 +1,9 @@
+# Figura 6.5 da dissertação de Marcos A. G. da Silva Filho (COPPE/UFRJ, 2023)
+# cenário 2 — Pot [pc]
+# série "Simulação"; vértices extraídos do gráfico vetorial, NÃO a saída numérica original
+t_min,valor
+0.88,100.0624
+9.77,100.0624
+31.07,45.6691
+35.80,46.2963
+1439.46,46.2963

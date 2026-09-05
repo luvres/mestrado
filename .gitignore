@@ -1,0 +1,16 @@
+# Binários compilados — regerados por:
+#   gcc --std=gnu89 -Wall V8_Reatividade_SimuladorIgor_linux.c -o simulador -lm
+simulador
+simulador_win
+simulador_x87
+
+# Saída das corridas — regerada pelos comandos em steps/01-porte-linux-simulador.md
+Modelagem_Reator.txt
+*.log
+
+# Intermediários da extração das curvas dos PDFs — regerados por
+#   python3 scripts/extrai_curvas_dissertacao.py
+reference/.tmp/
+
+__pycache__/
+*.pyc
