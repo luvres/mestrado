@@ -6,6 +6,7 @@ simulador_x87
 
 # Saída das corridas — regerada pelos comandos em steps/01-porte-linux-simulador.md
 Modelagem_Reator.txt
+Modelagem_Reator_py.txt
 *.log
 
 # Intermediários da extração das curvas dos PDFs — regerados por
