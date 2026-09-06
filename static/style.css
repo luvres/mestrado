@@ -1,0 +1,246 @@
+/* estilo.css — custom properties, sem framework.
+ *
+ * O frontend anterior carregava o Tailwind por CDN e nao usava uma unica classe
+ * utilitaria dele: eram 484 linhas de CSS proprio e ~400 KB de compilador JIT no
+ * navegador para nada (PRD §8). Aqui o CSS e o proprio CSS.
+ *
+ * Os dois fundos existem porque a escolha entre claro e escuro esta em aberto no
+ * PRD; o botao ◐ troca em tempo de execucao para poder comparar. */
+
+:root{
+  --ref:#7d8fa3;
+  --bg:#0f1318; --painel:#161b22; --painel2:#1b222b; --borda:#2a323d;
+  --tx:#e6edf3; --tx2:#9aa7b4; --tx3:#6b7885;
+  --acento:#4fb3ff; --ok:#3fb950; --fogo:#f0a03c; --alarme:#f05c5c;
+  --barra:#6ea8fe; --diluir:#4fd1c5; --borar:#c792ea; --alarme-b:#f0a03c;
+  --mono:ui-monospace,"DejaVu Sans Mono",Menlo,Consolas,monospace;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+}
+html[data-tema="claro"]{
+  --ref:#8c99a6;
+  --bg:#f3f5f7; --painel:#fff; --painel2:#f7f9fb; --borda:#d8dee6;
+  --tx:#182028; --tx2:#5a6673; --tx3:#8b96a2;
+  --acento:#0b6bcb; --ok:#1a7f37; --fogo:#b06400; --alarme:#c02a2a;
+  --barra:#2f6fd0; --diluir:#0d8a80; --borar:#7a3fb8; --alarme-b:#b06400;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:var(--sans);font-size:14px}
+
+/* A TELA INTEIRA, SEM ROLAGEM
+ *
+ *   O dashboard ocupa exatamente a altura da janela: os painéis são o item
+ *   elástico e absorvem o que sobra depois do cabeçalho, da faixa de disparos e
+ *   do painel da regra. Quem calcula a altura de cada painel é o app.js, que a
+ *   mede e a passa em unidades de `viewBox` — ver panels.js.
+ *
+ *   `min-height:0` nos itens de flex não é enfeite: sem ele um filho com conteúdo
+ *   maior que a caixa se recusa a encolher, e a rolagem volta. */
+.app{display:flex;flex-direction:column;gap:8px;padding:10px;height:100dvh;overflow:hidden}
+.app > .cartao{min-height:0}
+#paineis{flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
+#paineis .painel{flex:1 1 0;min-height:0}
+/* Sem isto o SVG dita a altura pela proporção do viewBox, o flex obedece, e o
+ * espaço liberado nunca chega aos painéis. Com height:100% a caixa manda, e o
+ * app.js converte essa altura em unidades do viewBox — o encaixe é exato. */
+#paineis .painel > svg{height:100%;min-height:0}
+.cartao.instrumentos{flex:1 1 auto;display:flex;flex-direction:column;min-height:0}
+.regra-cartao{min-height:0;overflow-y:auto}
+.faixa{flex:0 0 auto}
+
+/* ---------- falha visivel ---------- */
+.erro[hidden]{display:none}
+.erro{background:var(--alarme);color:#fff;border-radius:9px;padding:10px 14px;
+  font-family:var(--mono);font-size:13px;display:flex;gap:10px;align-items:flex-start}
+.erro b{font-family:var(--sans)}
+
+/* ---------- topo ---------- */
+header{display:flex;align-items:center;gap:10px;flex-wrap:nowrap;flex:none;
+  background:var(--painel);border:1px solid var(--borda);border-radius:10px;padding:6px 12px}
+h1{font-size:15px;margin:0;font-weight:600}
+h1 small{color:var(--tx2);font-weight:400}
+.espaco{flex:1}
+select,button,input[type=number]{font:inherit;background:var(--painel2);color:var(--tx);
+  border:1px solid var(--borda);border-radius:7px;padding:6px 10px;cursor:pointer}
+button:hover:not(:disabled),select:hover{border-color:var(--acento)}
+button:disabled{opacity:.5;cursor:default}
+.rodar{background:var(--acento);border-color:var(--acento);color:#04121f;font-weight:600}
+html[data-tema="claro"] .rodar{color:#fff}
+.progresso{font-family:var(--mono);font-size:12px;color:var(--tx2);min-width:150px}
+.servicos{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;color:var(--tx2)}
+.led{width:9px;height:9px;border-radius:50%;background:var(--tx3);display:inline-block}
+.led.viva{background:var(--ok);animation:pulso 2s infinite}
+.led.morta{background:var(--alarme)}
+@keyframes pulso{0%{box-shadow:0 0 0 0 rgba(63,185,80,.55)}70%{box-shadow:0 0 0 7px rgba(63,185,80,0)}100%{box-shadow:0 0 0 0 rgba(63,185,80,0)}}
+.relogio{font-family:var(--mono);font-size:19px;font-weight:600}
+.relogio span{color:var(--tx2);font-size:12px;font-weight:400}
+
+/* ---------- cartoes ---------- */
+.corpo{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:8px;
+  flex:1 1 auto;min-height:0}
+.coluna-tempo{display:flex;flex-direction:column;gap:8px;min-height:0}
+.cartao{background:var(--painel);border:1px solid var(--borda);border-radius:10px;padding:8px 12px}
+.cartao > h2{font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--tx3);
+  margin:0 0 6px;font-weight:600}
+.rodape-cartao{flex:none;font-size:10px;color:var(--tx3);margin:4px 0 0;
+  border-top:1px dashed var(--borda);padding-top:5px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rodape-cartao code{font-family:var(--mono)}
+.vazio{color:var(--tx3);padding:24px 0;text-align:center}
+
+/* ---------- parâmetros de partida ---------- */
+.params{flex:none;display:flex;align-items:center;gap:6px;flex-wrap:wrap;
+  font-family:var(--mono);font-size:11.5px;color:var(--tx2);
+  background:var(--painel);border:1px solid var(--borda);border-radius:8px;padding:3px 10px}
+.params .sep{color:var(--tx3);font-style:normal}
+.params .pv.mudou{color:var(--fogo);font-weight:700}
+.pestado{font-family:var(--sans);font-size:10.5px;padding:1px 7px;border-radius:99px;
+  border:1px solid var(--borda);color:var(--tx3);margin-right:2px}
+.pestado.borda{border-color:var(--fogo);color:var(--fogo)}
+.abre-params{font-family:var(--sans);font-size:11px;padding:2px 8px;margin-right:4px}
+.selo-corrida{font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:2px 7px;
+  border-radius:99px;border:1px solid var(--borda);color:var(--tx3)}
+.selo-corrida.borda{border-color:var(--fogo);color:var(--fogo)}
+.selo-corrida.ok{border-color:var(--ok);color:var(--ok)}
+
+.pmodal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;
+  align-items:center;justify-content:center;z-index:50;padding:16px}
+.pcaixa{background:var(--painel);border:1px solid var(--borda);border-radius:12px;
+  padding:16px 20px;width:min(760px,100%);max-height:92vh;overflow-y:auto}
+.pcaixa h3{margin:0 0 2px;font-size:14px}
+.pfonte{margin:0 0 12px;font-size:11px;color:var(--tx3)}
+.pfonte code,.pnota code{font-family:var(--mono)}
+.pcampos hr{border:none;border-top:1px dashed var(--borda);margin:10px 0}
+.pcampo{display:grid;grid-template-columns:1fr 110px 56px;gap:4px 10px;align-items:center;
+  margin-bottom:6px}
+.pnome{font-size:12.5px}
+.pnome b{font-family:var(--mono);color:var(--acento);font-weight:700}
+.pnome i{color:var(--tx3);font-style:normal;font-size:11px}
+.pcampo input{font-family:var(--mono);text-align:right;padding:4px 8px;cursor:text}
+.puni{font-size:11px;color:var(--tx3)}
+.paviso{grid-column:1 / -1;font-size:11px;color:var(--fogo);line-height:1.45;
+  border-left:2px solid var(--fogo);padding-left:7px;margin-top:1px}
+.paviso.grave{color:var(--alarme);border-left-color:var(--alarme)}
+.ptravado{grid-column:1 / -1;font-size:11.5px;color:var(--tx3);margin:6px 0 0}
+.pbordas{margin-top:14px;border-top:1px solid var(--borda);padding-top:10px}
+.pbordas h4{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--tx3);
+  margin:0 0 8px;font-weight:600}
+.pborda{display:inline-flex;flex-direction:column;align-items:flex-start;gap:1px;
+  margin:0 6px 6px 0;padding:5px 10px;text-align:left}
+.pborda b{font-family:var(--mono);font-size:12px}
+.pborda span{font-size:10.5px;color:var(--tx3)}
+.pborda.sel{border-color:var(--fogo)}
+.pborda.sel b{color:var(--fogo)}
+.pnota{font-size:11px;color:var(--tx3);line-height:1.5;margin:8px 0 0}
+.pacoes{display:flex;align-items:center;gap:8px;margin-top:14px;
+  border-top:1px solid var(--borda);padding-top:10px}
+
+/* ---------- painéis no tempo ---------- */
+.fichas{display:flex;gap:6px;align-items:center;flex-wrap:nowrap;overflow:hidden;
+  flex:none;margin:0 0 4px 178px}
+.ftitulo{font-size:11px;color:var(--tx3)}
+.ficha{font-family:var(--mono);font-size:12px;padding:3px 9px;border-radius:99px;cursor:pointer;
+  border:1px solid var(--borda);color:var(--tx2);background:transparent}
+.ficha:hover{border-color:var(--acento)}
+.ficha.sel{border-color:var(--fogo);color:var(--fogo);font-weight:700}
+.ficha .fdesc{font-family:var(--sans);color:var(--tx3);margin-left:6px;font-weight:400}
+
+/* `stretch`, não `center`: a célula do SVG precisa de altura DEFINIDA para que
+ * `height:100%` resolva. Com `center` a célula fica com a altura do conteúdo, a
+ * porcentagem cai para `auto` e o SVG volta a mandar na própria altura pela
+ * proporção do viewBox — que é o que trazia a rolagem de volta. */
+.painel{display:grid;grid-template-columns:168px 1fr;gap:0 10px;align-items:stretch}
+.painel .rot{text-align:right;padding-right:4px;align-self:center}
+.painel .nome{font-size:12px;color:var(--tx2);display:block;line-height:1.4}
+.painel .val{font-family:var(--mono);font-size:21px;font-weight:600;line-height:1.1}
+.painel .uni{font-size:11px;color:var(--tx3)}
+.painel .refval{display:block;margin-top:3px;font-family:var(--mono);font-size:10.5px;color:var(--ref)}
+svg{display:block;width:100%;height:auto}
+
+.eixo{stroke:var(--borda)}
+.grade{stroke:var(--borda);stroke-dasharray:2 4;opacity:.65}
+.rotgrade{fill:var(--tx3);font-family:var(--mono);font-size:9.5px;text-anchor:end}
+.limiar{stroke:var(--tx3);stroke-width:1;stroke-dasharray:1 3;opacity:.45}
+.curva{fill:none;stroke:var(--acento);stroke-width:1.6}
+.refcurva{fill:none;stroke:var(--ref);stroke-width:1.1;stroke-dasharray:5 3}
+.refrot{fill:var(--ref);font-family:var(--mono);font-size:9.5px}
+.cursor{stroke:var(--fogo);stroke-width:1}
+.ponto{fill:var(--fogo)}
+.eixot{fill:var(--tx3);font-family:var(--mono);font-size:10px;text-anchor:middle}
+
+/* a gramática das regiões: cheia = obrigatório, contorno = alternativa, tracejado = guarda.
+ * `regiao`, e não `faixa`: `.faixa` é o cartão da faixa de disparos, e as duas
+ * regras se atropelavam. */
+.regiao{fill:var(--fogo)}
+.regiao.obrigatorio{opacity:.13}
+.regiao.alternativa{opacity:.045}
+.regiao.guarda{opacity:0}
+.fronteira{fill:none;stroke:var(--fogo);stroke-width:1.4}
+.fronteira.alternativa{stroke-width:1.2;stroke-dasharray:7 4}
+.fronteira.guarda{stroke-width:1.2;stroke-dasharray:2 3;opacity:.8}
+.rotfaixa{fill:var(--fogo);font-family:var(--mono);font-size:10px;font-weight:700}
+.rotfaixa.alternativa{font-weight:400}
+.rotfaixa.guarda{fill:var(--tx3);font-weight:400}
+.rotfaixa.fraco{fill:var(--tx3);font-weight:400}
+.leg-obr,.leg-alt,.leg-gua{color:var(--fogo)}
+.sem-painel{flex:none;margin:3px 0 0 178px;font-size:10px;color:var(--tx3);font-family:var(--mono)}
+
+/* ---------- regra ---------- */
+.regracab{display:flex;align-items:center;gap:9px;margin-bottom:4px;flex-wrap:wrap}
+.regraid{font-family:var(--mono);font-size:20px;font-weight:700;color:var(--fogo);line-height:1}
+.regradesc{font-size:13px}
+.etiq{font-family:var(--mono);font-size:11px;padding:2px 7px;border-radius:5px;
+  border:1px solid var(--borda);color:var(--tx2)}
+.cond{font-family:var(--mono);font-size:12px;line-height:1.65;word-break:break-word}
+.cond.lit{color:var(--tx2)}
+.cond .sub{color:var(--acento);cursor:help}
+.veredito{color:var(--ok);font-weight:700}
+.guarda{font-family:var(--mono);font-size:11.5px;color:var(--tx3);margin:2px 0 8px}
+.linha-c{margin-top:5px;font-family:var(--mono);font-size:10px;color:var(--tx3);
+  border-top:1px dashed var(--borda);padding-top:5px}
+.lacuna{margin-top:6px;font-size:10.5px;color:var(--tx3);border-left:2px solid var(--fogo);
+  padding-left:8px;line-height:1.5}
+.secao{margin-top:6px;border-top:1px solid var(--borda);padding-top:5px}
+.secao h3{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--tx3);margin:0 0 6px}
+.fitem{display:flex;gap:8px;align-items:center;font-family:var(--mono);font-size:12px;
+  padding:4px 6px;border-radius:6px;cursor:pointer}
+.fitem:hover{background:var(--painel2)}
+.fitem.sel{background:var(--painel2);outline:1px solid var(--borda)}
+.fitem .fid{color:var(--fogo);font-weight:700;width:34px}
+.fitem .fdesc{color:var(--tx2);font-family:var(--sans)}
+.fitem .fln{margin-left:auto;color:var(--tx3)}
+.faixas{font-family:var(--mono);font-size:12px;line-height:1.9;color:var(--tx2)}
+.faixas .q{color:var(--tx)}
+details.console,details.consequente{margin-top:6px;border-top:1px solid var(--borda);padding-top:5px}
+details.consequente > summary{font-size:10px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--tx3);cursor:pointer}
+details.console summary{font-size:10px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--tx3);cursor:pointer}
+details.console pre{font-family:var(--mono);font-size:11.5px;color:var(--tx2);
+  background:var(--painel2);border:1px solid var(--borda);border-radius:6px;
+  padding:8px 10px;margin:8px 0 0;max-height:220px;overflow:auto;white-space:pre-wrap}
+
+/* ---------- faixa de disparos ---------- */
+.faixa{position:relative}
+.grade{display:grid;grid-template-columns:168px 1fr;gap:0 10px;align-items:center}
+.rrot{align-self:center}
+.rrot{font-family:var(--mono);font-size:10px;color:var(--tx2);text-align:right;line-height:11px}
+.rrot.morta{color:var(--tx3);opacity:.45}
+.rrot.aceso{color:var(--fogo);font-weight:700}
+.rlinha{position:relative;height:13px}
+.rlinha.morta{height:9px}
+.rrot.morta{line-height:9px;font-size:9px}
+.rlinha::before{content:"";position:absolute;left:0;right:0;top:6px;height:1px;background:var(--borda)}
+.rlinha.morta::before{top:4px}
+.bloco{position:absolute;top:2px;height:9px;width:3px;border-radius:1px;margin-left:-1px}
+.b-barra{background:var(--barra)} .b-diluir{background:var(--diluir)}
+.b-borar{background:var(--borar)} .b-alarme{background:var(--alarme-b)}
+.b-outro{background:var(--tx3)}
+.cursor{position:absolute;width:1px;background:var(--fogo);pointer-events:none}
+.cursor::after{content:"";position:absolute;left:-4px;top:-1px;border:4px solid transparent;border-top-color:var(--fogo)}
+.tempo{display:grid;grid-template-columns:168px 1fr;gap:0 10px;align-items:center;margin-top:4px}
+input[type=range]{width:100%;accent-color:var(--fogo);margin:0}
+.eixot{position:relative;height:14px;font-family:var(--mono);font-size:10px;color:var(--tx3);margin-top:2px}
+.eixot span{position:absolute;transform:translateX(-50%)}
+.legenda{display:flex;gap:12px;font-size:10px;color:var(--tx3);margin:0 0 5px 178px;flex-wrap:wrap}
+.legenda i{display:inline-block;width:16px;height:8px;border-radius:2px;margin-right:5px;vertical-align:middle}
+footer{flex:none;color:var(--tx3);font-size:10px;text-align:center;padding:0 0 2px;line-height:1.4}

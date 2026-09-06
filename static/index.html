@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="pt-BR" data-tema="escuro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Expert de Reatividade — a base de regras funcionando</title>
+<!--
+  A pagina inteira e local: nenhuma fonte remota, nenhum CDN, nenhum bundler.
+  O motivo esta no PRD_FRONTEND.md §2 — a mesma disciplina que fixa versoes e
+  roda tudo em conteiner. Isto aqui tem de abrir daqui a cinco anos com a rede
+  desligada.
+
+  O cliente NAO fecha a malha e NAO faz aritmetica (§6.1 e §6.2): tudo o que
+  aparece na tela veio de um campo do `estado` que o expert devolveu, ou do
+  texto literal das regras que `GET /expert/regras` publicou.
+-->
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app">
+
+  <!-- A falha tem de ser visivel (§2): erro de servico para a corrida e aparece
+       aqui, em vez de virar "sem acao" silencioso como no frontend anterior. -->
+  <div id="erro" class="erro" hidden></div>
+
+  <header>
+    <h1>Expert de Reatividade <small>— 19 regras servidas fora da física</small></h1>
+    <select id="cenario" aria-label="cenário"></select>
+    <button id="rodar" class="rodar">▷ Rodar</button>
+    <span id="progresso" class="progresso"></span>
+    <span id="selo" class="selo-corrida"></span>
+    <div class="espaco"></div>
+    <div class="servicos">
+      <span id="led" class="led"></span>
+      <span id="rotulo-servico">expert:8009 ⇄ reactor:8008</span>
+    </div>
+    <div class="relogio">t = <b id="treloj">—</b> <span id="ciclo">min</span></div>
+    <button id="tema" title="fundo claro / escuro">◐</button>
+  </header>
+
+  <!-- Os sete valores de partida, sempre à vista. São os prompts do simulador, na
+       ordem em que ele pergunta; clicar abre o editor. Ver params.js. -->
+  <div class="params" id="params"></div>
+
+  <!-- Duas colunas: à esquerda o que compartilha o eixo do tempo (painéis e faixa),
+       à direita a regra. Empilhar os três não cabia numa janela de 900 px, e o
+       primeiro a sofrer era o painel — que é o instrumento. -->
+  <div class="corpo">
+    <div class="coluna-tempo">
+  <section class="cartao instrumentos">
+    <h2>Instrumentos do controlador, no tempo</h2>
+    <div class="fichas" id="fichas"></div>
+    <div id="paineis"></div>
+    <p class="rodape-cartao">
+      As regiões saem do texto da condição em <code>GET /expert/regras</code>, lido como
+      árvore: <b class="leg-obr">faixa cheia</b> é termo obrigatório — a regra disparou, então
+      ele vale; <b class="leg-alt">contorno A, B…</b> são alternativas sob um <code>||</code>,
+      e basta uma (qual, a tela não diz — <a href="#nota">por quê</a>);
+      <b class="leg-gua">tracejado</b> é a guarda do bloco.
+      <b>LI</b> e <b>BD</b> são curvas, não marcas: movem-se com a potência.
+    </p>
+  </section>
+  <section class="cartao faixa">
+    <h2>Faixa de disparos — as 19 regras, alinhadas no tempo</h2>
+    <div class="grade" id="grade"></div>
+    <div class="cursor" id="cursor" hidden></div>
+    <div class="tempo">
+      <span class="rrot">t</span>
+      <div>
+        <input type="range" id="slider" min="0" max="0" value="0" disabled>
+        <div class="eixot" id="eixot"></div>
+      </div>
+    </div>
+    <div class="legenda" id="legenda"></div>
+  </section>
+    </div>
+  <section class="cartao regra-cartao">
+    <h2>A regra que disparou, com os valores substituídos</h2>
+    <div id="painel-regra"></div>
+  </section>
+  </div>
+
+  <footer id="nota">
+    O cliente fala com um serviço só, o expert. Cada tique da faixa é um disparo, no
+    minuto em que aconteceu; a largura não representa duração — desenhar duração
+    exigiria a API dizer quanto a ação consumiu (§7.3, em aberto).
+    <br>
+    Nove das dezenove condições têm <code>||</code>. A tela desenha a estrutura do
+    <code>ou</code>, mas não diz qual ramo venceu: dizer exigiria comparar em
+    <code>double</code> o que o expert decidiu em float de 32 bits, e num caso de fronteira
+    os dois discordariam. Quem sabe é o motor, no instante em que atua.
+  </footer>
+</div>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>
