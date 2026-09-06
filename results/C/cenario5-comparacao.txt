@@ -1,0 +1,8 @@
+corrida: /home/luvres/1uvr3z/Mestrado/Pesquisa/results/C/cenario5.txt   cenário: 5
+
+  grandeza       n   erro médio   erro máx   faixa da referência
+  ------------------------------------------------------------------
+  tmed          81       0.0429     0.0699     291.54..303.80  
+  deltai        90       0.0077     0.0255      -0.55..1.06    
+  pot           39       0.1005     0.2286       5.04..100.05  
+  vagua         52       2.0240     4.0821       4.08..1879.65 

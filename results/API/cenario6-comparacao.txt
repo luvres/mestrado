@@ -1,0 +1,11 @@
+corrida: /home/luvres/1uvr3z/Mestrado/Pesquisa/results/API/cenario6.txt   cenário: 6
+
+cenário 6 — comparação por grandezas agregadas (ver docstring)
+
+  deltat:
+                    referência     corrida
+    mínimo              -0.516      -0.492
+    máximo               0.821       0.800
+    média              -0.1041     -0.0817
+    desvio-padrão       0.1094      0.0908
+    fim do ciclo: referência t=668429   corrida t=669105   (0.101 %)

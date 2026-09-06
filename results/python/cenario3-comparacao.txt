@@ -1,0 +1,7 @@
+corrida: /home/luvres/1uvr3z/Mestrado/Pesquisa/results/python/cenario3.txt   cenário: 3
+
+  grandeza       n   erro médio   erro máx   faixa da referência
+  ------------------------------------------------------------------
+  tmed          49       0.0225     0.1333     293.61..303.80  
+  deltai        48       0.0121     0.0526      -0.02..4.97    
+  pot            5       0.5932     1.8976      23.05..100.06  

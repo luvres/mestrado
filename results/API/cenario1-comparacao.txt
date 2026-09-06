@@ -1,0 +1,6 @@
+corrida: /home/luvres/1uvr3z/Mestrado/Pesquisa/results/API/cenario1.txt   cenário: 1
+
+  grandeza       n   erro médio   erro máx   faixa da referência
+  ------------------------------------------------------------------
+  tmed          28       0.0441     0.1288     302.80..303.80  
+  deltai       238       0.0013     0.0602       0.15..0.76    
