@@ -1,0 +1,28 @@
+# Dependencias do servico reactor (porta 8008) — a planta, sem regras.
+#
+# Instaladas na imagem por reactor/Dockerfile. Nao confundir com o
+# requirements.txt da raiz, que e do ambiente que roda os scripts de validacao
+# e gera os graficos.
+#
+# Versoes conforme resolvidas na imagem python:3.14-slim.
+
+# --- diretas ---
+fastapi
+uvicorn
+pydantic       # models.py: validacao dos parametros de partida e das acoes
+pytest         # a suite entra por montagem em /tests, mas roda DENTRO da
+               #   imagem, contra os modulos que estao servindo a API:
+               #   podman exec reactor-simulator python -m pytest /tests
+iniconfig
+packaging
+plugg
+annotated-doc
+annotated-types
+anyio
+click
+h11
+idna
+pydantic_core
+starlette
+typing_extensions
+typing-inspection
