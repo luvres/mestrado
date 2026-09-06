@@ -5,9 +5,17 @@ simulador_win
 simulador_x87
 
 # Saída das corridas — regerada pelos comandos em steps/01-porte-linux-simulador.md
+# e steps/04-servico-reactor.md
 Modelagem_Reator.txt
 Modelagem_Reator_py.txt
+Modelagem_Reator_api.txt
+Modelagem_Reator_expert.txt
+Modelagem_Reator_malha.txt
 *.log
+
+# Amostras gravadas pelo serviço reactor: ./runs é montado em /runs no
+# contêiner, e cada sessão da API escreve o seu arquivo lá.
+runs/Modelagem_Reator_*.txt
 
 # Intermediários da extração das curvas dos PDFs — regerados por
 #   python3 scripts/extrai_curvas_dissertacao.py

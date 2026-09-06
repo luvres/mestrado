@@ -1,0 +1,66 @@
+{
+  "_sobre": [
+    "Os 6 cenarios da dissertacao, numa forma neutra. FONTE UNICA dos valores.",
+    "",
+    "Os campos usam os nomes da API (POST /expert/initialize e",
+    "POST /reactor/initialize). Quem precisa de linha de comando — o binario C e",
+    "simulador.py — deriva as flags a partir daqui; a derivacao esta em",
+    "scripts/cenarios.py, num lugar so, para nao virar mais uma copia.",
+    "",
+    "Os 7 primeiros campos numericos sao, na ordem, os valores que o operador",
+    "digita nos prompts do simulador original: potencia da turbina, concentracao",
+    "de boro, posicao do banco D, intervalo por diluicao, DeltaT para vazao",
+    "minima, DeltaT para vazao maxima, e Delta I inicial.",
+    "",
+    "tmax nulo significa 'sem horizonte': a corrida vai ate a regra R19 declarar",
+    "fim de ciclo (Cboro < 8). Na linha de comando isso e a ausencia de --tmax;",
+    "na API, a ausencia do campo (o servico usa o proprio padrao).",
+    "",
+    "transiente nulo significa operacao sem transiente de carga."
+  ],
+
+  "cenarios": {
+    "1": {
+      "descricao": "operação normal, 1 dia",
+      "pot_turbina": 650, "cboro": 1800, "posicao_barra": 210,
+      "tempodilute": 4, "t1": -0.3, "t2": -0.8, "delta_i": 0,
+      "tmax": 1440,
+      "transiente": null, "t_transiente": null, "alvo": null, "taxa": null
+    },
+    "2": {
+      "descricao": "runback da bomba de água de alimentação",
+      "pot_turbina": 650, "cboro": 1800, "posicao_barra": 210,
+      "tempodilute": 4, "t1": -0.3, "t2": -0.8, "delta_i": 0,
+      "tmax": 1440,
+      "transiente": "runback-bap", "t_transiente": 10, "alvo": null, "taxa": null
+    },
+    "3": {
+      "descricao": "runback manual para 150 MW",
+      "pot_turbina": 650, "cboro": 1800, "posicao_barra": 210,
+      "tempodilute": 4, "t1": -0.3, "t2": -0.8, "delta_i": 0,
+      "tmax": 1440,
+      "transiente": "runback-150", "t_transiente": 10, "alvo": null, "taxa": null
+    },
+    "4": {
+      "descricao": "rampa 32 → 650 MW a 1 MW/min",
+      "pot_turbina": 32, "cboro": 1800, "posicao_barra": 144,
+      "tempodilute": 4, "t1": -0.3, "t2": -0.8, "delta_i": 0,
+      "tmax": 1440,
+      "transiente": "rampa", "t_transiente": 10, "alvo": 650, "taxa": 1
+    },
+    "5": {
+      "descricao": "rampa 650 → 32 MW a 3 MW/min",
+      "pot_turbina": 650, "cboro": 1800, "posicao_barra": 210,
+      "tempodilute": 4, "t1": -0.3, "t2": -0.8, "delta_i": 0,
+      "tmax": 1440,
+      "transiente": "rampa", "t_transiente": 10, "alvo": 32, "taxa": 3
+    },
+    "6": {
+      "descricao": "ciclo completo até Cboro < 8",
+      "pot_turbina": 650, "cboro": 1800, "posicao_barra": 210,
+      "tempodilute": 4, "t1": -0.3, "t2": -0.8, "delta_i": 0,
+      "tmax": null,
+      "transiente": null, "t_transiente": null, "alvo": null, "taxa": null
+    }
+  }
+}

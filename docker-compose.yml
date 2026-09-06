@@ -1,0 +1,110 @@
+services:
+  reactor-simulator:
+    build:
+      context: ./reactor
+      dockerfile: ./Dockerfile
+    container_name: reactor-simulator
+    image: reactor-simulator:latest
+    restart: unless-stopped
+    # O servico grava as amostras em /runs, que e um diretorio do HOST. Sem
+    # isto, no podman rootless, o uid 1000 de dentro do conteiner cai num
+    # subuid do host e nao consegue escrever num diretorio do usuario — o
+    # POST /reactor/initialize responde 500. keep-id casa os dois uids.
+    userns_mode: "keep-id"
+    ports:
+      - "8008:8008"
+    volumes:
+      # ./runs guarda o arquivo de amostras de cada sessao da API — o
+      # equivalente do Modelagem_Reator.txt que o binario C cria no diretorio
+      # onde roda. ./static nao entra AQUI: a tela de demonstracao fala com um
+      # servico so, o expert, e e la que ela e montada.
+      - ./runs:/runs
+      # A suite de testes entra por montagem, nao por COPY: editar um teste nao
+      # exige reconstruir a imagem. Read-only — o conteiner nunca escreve aqui.
+      #     podman exec reactor-simulator python -m pytest /tests
+      - ./tests:/tests:ro
+      # tests/test_genealogia.py compara a fisica de reactor/ com a do porte
+      # fiel que lhe deu origem. E artefato de REFERENCIA, nao codigo de
+      # servico — por isso vai em /ref, como o fonte C no outro conteiner.
+      - ./simulador.py:/ref/simulador.py:ro
+      # O braco procedural (as 19 regras) e o que fecha a malha: sem ele nao ha
+      # como rodar a planta de ponta a ponta para comparar com o porte fiel.
+      # Tambem e artefato de REFERENCIA, e nao codigo de servico — o reator nao
+      # o importa, so o teste o executa.
+      - ./scripts/validate_c_vs_python.py:/ref/validate_c_vs_python.py:ro
+    networks:
+      - reactor-network
+    environment:
+      - PORTE_PY=/ref/simulador.py
+      - BRACO_PY=/ref/validate_c_vs_python.py
+      # Usadas por tests/test_api.py quando ele roda DENTRO da rede dos
+      # conteineres, onde `localhost` seria o proprio conteiner. Nao sao lidas
+      # pelo servico: o reator e fisica pura e nao chama ninguem. Quem fecha a
+      # malha e o expert, que recebe a URL do reator no corpo de
+      # POST /expert/initialize. A dependencia continua sendo de mao unica.
+      - REACTOR_API_URL=http://reactor-simulator:8008
+      - EXPERT_API_URL=http://reactor-expert-system:8009
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8008/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # As 19 regras, sem nenhuma fisica. Depende do reactor em tempo de EXECUCAO,
+  # nao de partida: a URL da planta chega no corpo de POST /expert/initialize,
+  # entao os dois sobem em qualquer ordem e o expert so falha (502) se o reator
+  # nao responder na hora da chamada. Por isso nao ha depends_on.
+  reactor-expert-system:
+    build:
+      context: ./expert
+      dockerfile: ./Dockerfile
+    container_name: reactor-expert-system
+    image: reactor-expert-system:latest
+    restart: unless-stopped
+    ports:
+      - "8009:8009"
+    volumes:
+      # A tela de demonstracao. Servida pelo PROPRIO expert, em /app, para que a
+      # pagina e a API fiquem na mesma origem — sem CORS e sem um segundo
+      # processo para ligar (PRD_FRONTEND.md §7.1). Vem por montagem, e nao por
+      # COPY no Dockerfile, porque editar a tela nao deve exigir reconstruir a
+      # imagem. Read-only: o servico nunca escreve aqui.
+      - ./static:/api/static:ro
+      # cenarios.json e a FONTE UNICA dos 6 cenarios, e mora na raiz do
+      # repositorio porque scripts/cenarios.py e os testes tambem o leem. Entra
+      # montado, nunca copiado, para nao virar uma segunda copia que envelhece
+      # sozinha. Fica FORA de /api/static de proposito: montar um arquivo dentro
+      # de um diretorio que ja e bind-mount faz o podman criar o alvo vazio no
+      # HOST, e o repositorio ganharia um static/cenarios.json de 0 byte. Quem o
+      # entrega ao navegador e uma rota explicita do main.py.
+      - ./cenarios.json:/api/cenarios.json:ro
+      - ./tests:/tests:ro
+      # tests/test_equivalencia_regras.py extrai as 19 condicoes direto do
+      # fonte C, por numero de linha. Read-only, e o caminho e passado em
+      # FONTE_C porque dentro do conteiner nao existe raiz de repositorio.
+      - ./V8_Reatividade_SimuladorIgor_linux.c:/ref/V8_Reatividade_SimuladorIgor_linux.c:ro
+      # tests/test_equivalencia_braco_python.py compara o braco procedural com
+      # os mesmos blocos do C. Os dois sao ARTEFATOS DE REFERENCIA, nao codigo
+      # de servico — por isso vao juntos em /ref.
+      - ./scripts/validate_c_vs_python.py:/ref/validate_c_vs_python.py:ro
+      # E o gemeo declarativo dele: tests/test_equivalencia_braco_python.py roda
+      # os DOIS contra o mesmo reator e compara os bytes. Sao os dois artefatos
+      # de referencia do passo — nenhum e importado pelo servico.
+      - ./scripts/validate_expert.py:/ref/validate_expert.py:ro
+    networks:
+      - reactor-network
+    environment:
+      - FONTE_C=/ref/V8_Reatividade_SimuladorIgor_linux.c
+      - BRACO_PY=/ref/validate_c_vs_python.py
+      - DECL_PY=/ref/validate_expert.py
+      - REACTOR_API_URL=http://reactor-simulator:8008
+      - EXPERT_API_URL=http://reactor-expert-system:8009
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8009/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  reactor-network:
+    driver: bridge

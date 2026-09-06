@@ -1,0 +1,46 @@
+# Dependências dos scripts de validação, comparação e visualização (scripts/).
+#
+# Os dois serviços NÃO usam este arquivo — cada um tem o seu:
+#   reactor/requirements.txt   simulador de física (porta 8008)
+#   expert/requirements.txt    sistema especialista (porta 8009)
+#
+# Os serviços rodam em contêineres (ver docker-compose.yml, executado com
+# podman-compose). Estes requisitos são para o ambiente que executa os scripts,
+# que falam com os serviços por HTTP e geram os gráficos.
+#
+# Instalação:
+#   python3.13 -m venv .venv
+#   .venv/bin/pip install -r requirements.txt
+#
+# Versões conforme usadas para gerar os resultados (Python 3.13.15).
+
+# --- diretas ---
+requests      # clientes HTTP dos scripts de validação
+numpy         # métricas em validate_quantitative.py e compare_control_performance.py
+matplotlib    # dashboards e gráficos comparativos
+pexpect       # entrada interativa no simulador C (cenários transientes 2-5)
+pytest        # suite de testes em tests/
+pydantic      # scripts/validate_c_vs_python.py importa reactor/ diretamente
+                       #   (sys.path.insert), e os modelos do reactor usam pydantic
+
+# --- transitivas (fixadas para reprodutibilidade) ---
+annotated-types
+certifi
+iniconfig
+pluggy
+charset-normalizer
+contourpy
+cycler
+fonttools
+idna
+kiwisolver
+packaging
+pillow
+ptyprocess
+pyparsing
+pydantic_core
+python-dateutil
+six
+typing_extensions
+typing-inspection
+urllib3

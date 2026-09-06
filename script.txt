@@ -1,0 +1,219 @@
+# Os 6 cenários da dissertação, nos três níveis.
+#
+# Os três produzem arquivos de amostras IDÊNTICOS byte a byte, e o
+# compara_corrida.py confronta cada um com as curvas extraídas da dissertação.
+#
+# Antes de rodar:
+#   C      o binário tem de estar atualizado em relação ao fonte:
+#            gcc --std=gnu89 -Wall V8_Reatividade_SimuladorIgor_linux.c -o simulador -lm
+#   API    os dois serviços têm de estar no ar:
+#            podman-compose up -d
+#
+# Nos blocos da API, COLE O BLOCO INTEIRO de uma vez. Rodando linha por linha o
+# $SID não sobrevive de um comando para o outro, a URL vira /expert//executar,
+# o servidor responde 404 e o arquivo sai com só o cabeçalho.
+
+# Tabela de 6 cenários, 5 sugeridos pelo operador sênior Igor + 1 do ciclo completo 
+
+# ┌─────────┬─────────┬──────┬───────┬───────┬────────┬────────┬─────┬───────────────────────────┐
+# │ cenário │ turbina │ boro │ barra │ dilui │ dt_min │ dt_max │ ΔI  │        transiente         │
+# ├─────────┼─────────┼──────┼───────┼───────┼────────┼────────┼─────┼───────────────────────────┤
+# │ 1       │ 650     │ 1800 │ 210   │ 4     │ −0.3   │ −0.8   │ 0   │ —                         │
+# ├─────────┼─────────┼──────┼───────┼───────┼────────┼────────┼─────┼───────────────────────────┤
+# │ 2       │ 650     │ 1800 │ 210   │ 4     │ −0.3   │ −0.8   │ 0   │ rápido → 300 MW em t=10   │
+# ├─────────┼─────────┼──────┼───────┼───────┼────────┼────────┼─────┼───────────────────────────┤
+# │ 3       │ 650     │ 1800 │ 210   │ 4     │ −0.3   │ −0.8   │ 0   │ rápido → 150 MW em t=10   │
+# ├─────────┼─────────┼──────┼───────┼───────┼────────┼────────┼─────┼───────────────────────────┤
+# │ 4       │ 32      │ 1800 │ 144   │ 4     │ −0.3   │ −0.8   │ 0   │ lento → 650 MW, +1 MW/min │
+# ├─────────┼─────────┼──────┼───────┼───────┼────────┼────────┼─────┼───────────────────────────┤
+# │ 5       │ 650     │ 1800 │ 210   │ 4     │ −0.3   │ −0.8   │ 0   │ lento → 32 MW, −3 MW/min  │
+# ├─────────┼─────────┼──────┼───────┼───────┼────────┼────────┼─────┼───────────────────────────┤
+# │ 6       │ 650     │ 1800 │ 210   │ 4     │ −0.3   │ −0.8   │ 0   │ — (roda até boro < 8)     │
+# └─────────┴─────────┴──────┴───────┴───────┴────────┴────────┴─────┴───────────────────────────┘
+
+
+#####
+# C #
+#####
+# Cenário 1
+rm -f Modelagem_Reator.txt; echo "650 1800 210 4 -0.3 -0.8 0" | tr ' ' '\n' | ./simulador --tmax=1440 > /dev/null; \
+python scripts/compara_corrida.py Modelagem_Reator.txt 1
+# Cenário 2
+rm -f Modelagem_Reator.txt; echo "650 1800 210 4 -0.3 -0.8 0" | tr ' ' '\n' | ./simulador --transiente=runback-bap --t-transiente=10 --tmax=1440 > /dev/null; \
+python scripts/compara_corrida.py Modelagem_Reator.txt 2
+# Cenário 3
+rm -f Modelagem_Reator.txt; echo "650 1800 210 4 -0.3 -0.8 0" | tr ' ' '\n' | ./simulador --transiente=runback-150 --t-transiente=10 --tmax=1440 > /dev/null; \
+python scripts/compara_corrida.py Modelagem_Reator.txt 3
+# Cenário 4
+rm -f Modelagem_Reator.txt; echo "32 1800 144 4 -0.3 -0.8 0" | tr ' ' '\n' | ./simulador --transiente=rampa --alvo=650 --taxa=1 --t-transiente=10 --tmax=1440 > /dev/null; \
+python scripts/compara_corrida.py Modelagem_Reator.txt 4
+# Cenário 5
+rm -f Modelagem_Reator.txt; echo "650 1800 210 4 -0.3 -0.8 0" | tr ' ' '\n' | ./simulador --transiente=rampa --alvo=32 --taxa=3 --t-transiente=10 --tmax=1440 > /dev/null; \
+python scripts/compara_corrida.py Modelagem_Reator.txt 5
+# Cenário 6 — ciclo completo, ~50 s
+rm -f Modelagem_Reator.txt; echo "650 1800 210 4 -0.3 -0.8 0" | tr ' ' '\n' | ./simulador > /dev/null; \
+python scripts/compara_corrida.py Modelagem_Reator.txt 6
+
+
+##########
+# Python #
+##########
+# Cenário 1
+rm -f Modelagem_Reator_py.txt; echo "650 1800 210 4 -0.3 -0.8 0" | tr ' ' '\n' | python simulador.py --tmax=1440 > /dev/null;\
+python scripts/compara_corrida.py Modelagem_Reator_py.txt 1
+# Cenário 2
+rm -f Modelagem_Reator_py.txt; echo "650 1800 210 4 -0.3 -0.8 0" | tr ' ' '\n' | python simulador.py --transiente=runback-bap --t-transiente=10 --tmax=1440 > /dev/null;\
+python scripts/compara_corrida.py Modelagem_Reator_py.txt 2
+# Cenário 3
+rm -f Modelagem_Reator_py.txt; echo "650 1800 210 4 -0.3 -0.8 0" | tr ' ' '\n' | python simulador.py --transiente=runback-150 --t-transiente=10 --tmax=1440 > /dev/null;\
+python scripts/compara_corrida.py Modelagem_Reator_py.txt 3
+# Cenário 4
+rm -f Modelagem_Reator_py.txt; echo "32 1800 144 4 -0.3 -0.8 0" | tr ' ' '\n' | python simulador.py --transiente=rampa --alvo=650 --taxa=1 --t-transiente=10 --tmax=1440 > /dev/null;\
+python scripts/compara_corrida.py Modelagem_Reator_py.txt 4
+# Cenário 5
+rm -f Modelagem_Reator_py.txt; echo "650 1800 210 4 -0.3 -0.8 0" | tr ' ' '\n' | python simulador.py --transiente=rampa --alvo=32 --taxa=3 --t-transiente=10 --tmax=1440 > /dev/null;\
+python scripts/compara_corrida.py Modelagem_Reator_py.txt 5
+# Cenário 6 — ciclo completo, ~45 s
+rm -f Modelagem_Reator_py.txt; echo "650 1800 210 4 -0.3 -0.8 0" | tr ' ' '\n' | python simulador.py > /dev/null;\
+python scripts/compara_corrida.py Modelagem_Reator_py.txt 6
+
+
+#######
+# API #
+#######
+# O expert (8009) decide, o reactor (8008) simula. O arquivo de amostras é
+# gravado pelo reactor em /runs, que é ./runs montado do host.
+#
+# O `| jq -c` no executar não é enfeite: sem ele um 404 ou 502 passa
+# despercebido e você só descobre pelo arquivo vazio.
+
+# Cenário 1
+rm -f runs/Modelagem_Reator_cenario1.txt
+
+SID=$(curl -s -X POST localhost:8009/expert/initialize \
+  -H 'Content-Type: application/json' \
+  -d '{"reactor_url":"http://reactor-simulator:8008",
+       "pot_turbina":650, "cboro":1800, "posicao_barra":210, "tempodilute":4,
+       "t1":-0.3, "t2":-0.8, "delta_i":0, "tmax":1440,
+       "arquivo":"Modelagem_Reator_cenario1.txt"}' | jq -r .sessao)
+
+curl -s -X POST localhost:8009/expert/$SID/executar \
+  -H 'Content-Type: application/json' -d '{}' | jq -c '{ciclos, t: .estado.t}'
+
+curl -s -X DELETE localhost:8009/expert/$SID > /dev/null
+
+python scripts/compara_corrida.py runs/Modelagem_Reator_cenario1.txt 1
+
+# Cenário 2 — runback da bomba de água de alimentação
+rm -f runs/Modelagem_Reator_cenario2.txt
+
+SID=$(curl -s -X POST localhost:8009/expert/initialize \
+  -H 'Content-Type: application/json' \
+  -d '{"reactor_url":"http://reactor-simulator:8008",
+       "pot_turbina":650, "cboro":1800, "posicao_barra":210, "tempodilute":4,
+       "t1":-0.3, "t2":-0.8, "delta_i":0, "tmax":1440,
+       "transiente":"runback-bap", "t_transiente":10,
+       "arquivo":"Modelagem_Reator_cenario2.txt"}' | jq -r .sessao)
+
+curl -s -X POST localhost:8009/expert/$SID/executar \
+  -H 'Content-Type: application/json' -d '{}' | jq -c '{ciclos, t: .estado.t}'
+
+curl -s -X DELETE localhost:8009/expert/$SID > /dev/null
+
+python scripts/compara_corrida.py runs/Modelagem_Reator_cenario2.txt 2
+
+# Cenário 3 — runback manual para 150 MW
+rm -f runs/Modelagem_Reator_cenario3.txt
+
+SID=$(curl -s -X POST localhost:8009/expert/initialize \
+  -H 'Content-Type: application/json' \
+  -d '{"reactor_url":"http://reactor-simulator:8008",
+       "pot_turbina":650, "cboro":1800, "posicao_barra":210, "tempodilute":4,
+       "t1":-0.3, "t2":-0.8, "delta_i":0, "tmax":1440,
+       "transiente":"runback-150", "t_transiente":10,
+       "arquivo":"Modelagem_Reator_cenario3.txt"}' | jq -r .sessao)
+
+curl -s -X POST localhost:8009/expert/$SID/executar \
+  -H 'Content-Type: application/json' -d '{}' | jq -c '{ciclos, t: .estado.t}'
+
+curl -s -X DELETE localhost:8009/expert/$SID > /dev/null
+
+python scripts/compara_corrida.py runs/Modelagem_Reator_cenario3.txt 3
+
+# Cenário 4 — rampa de 32 para 650 MW a 1 MW/min
+# É o único que também muda os valores de partida: 32 MW e banco D em 144.
+rm -f runs/Modelagem_Reator_cenario4.txt
+
+SID=$(curl -s -X POST localhost:8009/expert/initialize \
+  -H 'Content-Type: application/json' \
+  -d '{"reactor_url":"http://reactor-simulator:8008",
+       "pot_turbina":32, "cboro":1800, "posicao_barra":144, "tempodilute":4,
+       "t1":-0.3, "t2":-0.8, "delta_i":0, "tmax":1440,
+       "transiente":"rampa", "alvo":650, "taxa":1, "t_transiente":10,
+       "arquivo":"Modelagem_Reator_cenario4.txt"}' | jq -r .sessao)
+
+curl -s -X POST localhost:8009/expert/$SID/executar \
+  -H 'Content-Type: application/json' -d '{}' | jq -c '{ciclos, t: .estado.t}'
+
+curl -s -X DELETE localhost:8009/expert/$SID > /dev/null
+
+python scripts/compara_corrida.py runs/Modelagem_Reator_cenario4.txt 4
+
+# Cenário 5 — rampa de 650 para 32 MW a 3 MW/min
+rm -f runs/Modelagem_Reator_cenario5.txt
+
+SID=$(curl -s -X POST localhost:8009/expert/initialize \
+  -H 'Content-Type: application/json' \
+  -d '{"reactor_url":"http://reactor-simulator:8008",
+       "pot_turbina":650, "cboro":1800, "posicao_barra":210, "tempodilute":4,
+       "t1":-0.3, "t2":-0.8, "delta_i":0, "tmax":1440,
+       "transiente":"rampa", "alvo":32, "taxa":3, "t_transiente":10,
+       "arquivo":"Modelagem_Reator_cenario5.txt"}' | jq -r .sessao)
+
+curl -s -X POST localhost:8009/expert/$SID/executar \
+  -H 'Content-Type: application/json' -d '{}' | jq -c '{ciclos, t: .estado.t}'
+
+curl -s -X DELETE localhost:8009/expert/$SID > /dev/null
+
+python scripts/compara_corrida.py runs/Modelagem_Reator_cenario5.txt 5
+
+# Cenário 6 — ciclo completo até Cboro<8, ~12 min
+# Sem tmax: quem encerra é a regra R19. São ~514 mil ciclos e mais de 400 MB de
+# saída, que não cabem numa resposta — daí o laço. O servidor limita cada
+# resposta a 8 MB e sinaliza pode_continuar; foram 55 chamadas na última corrida.
+rm -f runs/Modelagem_Reator_cenario6.txt
+
+SID=$(curl -s -X POST localhost:8009/expert/initialize \
+  -H 'Content-Type: application/json' \
+  -d '{"reactor_url":"http://reactor-simulator:8008",
+       "pot_turbina":650, "cboro":1800, "posicao_barra":210, "tempodilute":4,
+       "t1":-0.3, "t2":-0.8, "delta_i":0,
+       "arquivo":"Modelagem_Reator_cenario6.txt"}' | jq -r .sessao)
+
+while [ "$(curl -s -X POST localhost:8009/expert/$SID/executar \
+             -H 'Content-Type: application/json' -d '{}' | jq -r .pode_continuar)" = "true" ]; do
+  :
+done
+
+curl -s localhost:8009/expert/$SID/estado | jq -c '{ciclos, t: .estado.t, Cboro: .estado.Cboro, termino}'
+curl -s -X DELETE localhost:8009/expert/$SID > /dev/null
+
+python scripts/compara_corrida.py runs/Modelagem_Reator_cenario6.txt 6
+
+
+############################################
+# Quais das 19 regras cada cenário exercita #
+############################################
+# Acrescente antes do DELETE, em qualquer cenário da API:
+#
+#   curl -s localhost:8009/expert/$SID/disparos | jq -c '{ciclos, disparos}'
+#
+# Cenário 1: {"R1":3,"R9":74,"R13":77}                       — 3 regras
+# Cenário 2: {"R1":24,"R5":4,"R9":7,"R10":1,"R13":3,"R14":18,"R18":2}
+# Cenário 3: {"R1":23,"R5":26,"R7":2,"R9":6,"R10":1,"R13":3,"R14":31,"R18":4}
+# Cenário 4: {"R1":9,"R3":6,"R4":2,"R5":25,"R7":1,"R9":38,"R13":83,"R18":3}
+# Cenário 5: {"R1":50,"R2":25,"R9":8,"R10":3,"R13":4,"R14":68,"R18":1}
+# Cenário 6: {"R1":5966,"R2":2,"R6":8,"R8":1285,"R9":74,"R13":77,"R16":1,"R19":1}
+#
+# Os 6 cenários somados exercitam 12 das 19 regras. R11, R12 e R17 exigem
+# configurações de borda (ver steps/05-servico-expert.md §8).
