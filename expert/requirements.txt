@@ -1,0 +1,28 @@
+# Dependencias do servico expert (porta 8009) — as 19 regras, sem fisica.
+#
+# Iguais as do reactor, e de proposito: os dois servicos rodam sobre a mesma
+# base para que uma divergencia entre eles nunca possa ser atribuida a versao de
+# biblioteca. O cliente HTTP do reator usa urllib da stdlib — nao ha requests
+# nem httpx aqui.
+#
+# Versoes conforme resolvidas na imagem python:3.14-slim.
+
+# --- diretas ---
+fastapi
+uvicorn
+pydantic      # models.py: validacao dos parametros de partida
+pytest        # podman exec reactor-expert-system python -m pytest /tests
+
+annotated-doc
+annotated-types
+anyio
+click
+h11
+idna
+iniconfig
+packaging
+pluggy
+pydantic_core
+starlette
+typing_extensions
+typing-inspection
